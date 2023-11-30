@@ -1,13 +1,139 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+* {
+    font-family: 'Poppins', sans-serif;
+    color: #ffffff;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.appContainer {
+    background-color: rgb(127,127,127);
+    display:flex; 
+}
+
+.sideBar {
+    background-color: rgb(64, 64, 64);
+    height: 100vh;
+    width: 244px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.chatBtn {
+    border: 0.5px solid rgb(96, 96, 96);
+    background-color: transparent;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px;
+}
+
+.main {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    /* overflow: hidden; */
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+}
+
+.footerContent {
+    border-top:0.5px solid rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    margin: 10px;
+}
+
+.historyList {
+    padding: 10px;
+    margin: 10px;
+    height: 100%;
+}
+
+.historyItem {
+    list-style-type: none;
+    padding: 15px 0;
+    cursor: pointer;
+}
+
+.feedList {
+    display:flex;
+    width: 100%;
+    padding: 0;
+    flex-direction: column;
+    align-items: center;
+}
+
+.feedItem {
+    list-style-type: none;
+    background-color: rgb(96, 96, 96);;
+    width: 80%;
+    padding: 20px;
+    margin: 20px;
+    display: flex;
+    text-align: left;
+    /* align-items: center; */
+    border-radius: 5px;
+    text-align: justify;
+}
+
+.role {
+    min-width: 40px;
+}
+
+.role>img {
+    width:30px;
+    height:30px;
+}
+
+.info {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 11px;
+    padding: 10px;
+}
+
+.bottomSection {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.inputContainer {
+    position: relative;
+    width: 100%;
+    max-width: 650px;
+}
+
+textarea {
+    width: 100%;
+    border: none;
+    font-size:20px;
+    background-color: rgb(96, 96, 96);
+    padding: 12px 15px;
+    border-radius: 5px;
+    box-shadow:rgba(0,0,0, 0.05) 0 54px 55px,
+    rgba(0,0,0, 0.05) 0 -12px 30px,
+    rgba(0,0,0, 0.05) 0 4px 6px,
+    rgba(0,0,0, 0.05) 0 12px 3px,
+    rgba(0,0,0, 0.05) 0 -3px 5px;
+    overflow:hidden;
+}
+
+textarea:focus {
+    outline: none;
+}
+
+#submit {
+    position: absolute;
+    bottom: 15px;
+    right: 0;
+    cursor: pointer;
+    color:rgba(255,255,255,0.8);
 }
