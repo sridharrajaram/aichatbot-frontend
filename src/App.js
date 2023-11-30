@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import submitIcon from './assets/images/submit-arrow.png';
 import userIcon from './assets/images/user-icon.png';
 import botIcon from './assets/images/bot-icon.png';
@@ -7,10 +7,10 @@ const backendUrl = 'http://localhost:8000'
 
 const App = () => {
 
-  const [value, setValue]=useState("");
-  const [message, setMessage]=useState("");
-  const [previousChats, setPreviousChats]=useState([]);
-  const [currentTitle, setCurrentTitle]=useState("");
+  const [value, setValue] = useState("");
+  const [message, setMessage] = useState("");
+  const [previousChats, setPreviousChats] = useState([]);
+  const [currentTitle, setCurrentTitle] = useState("");
   const [inputHeight, setInputHeight] = useState('auto');
 
   const handleInputChange = (e) => {
@@ -24,38 +24,72 @@ const App = () => {
     setCurrentTitle("");
   }
 
-  const handleClick = (uniqueTitle) => {
+  const handleNewChat = () => {
+    createNewChat();
+    setCurrentTitle('');
+  };
+
+  const handleTitleClick = (uniqueTitle) => {
     setCurrentTitle(uniqueTitle);
-    setValue("");
-    setMessage("");
-  }
+    setValue('');
+    setMessage('');
+  };
 
-  const getMessages = async () => {
+  const handleButtonClick = async () => {
+    if (value) {
+      try {
+        // Set currentTitle if not already set
+        if (!currentTitle) {
+          setCurrentTitle(value);
+        }
 
-    const options = {
-      method: 'POST',
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        message: value
-      }),
+        // Add user message first
+        setPreviousChats((prevChats) => [
+          ...prevChats,
+          {
+            title: currentTitle || value, // Use currentTitle if set, otherwise use value
+            role: "user",
+            content: value,
+          },
+        ]);
+
+        // Clear the input value after adding the user message
+        setValue("");
+
+        // Then make API call to get bot's response
+        const options = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: value,
+          }),
+        };
+
+        const response = await fetch(`${backendUrl}/completions`, options);
+        const data = await response.json();
+
+        // Add bot's response to the array
+        setPreviousChats((prevChats) => [
+          ...prevChats,
+          {
+            title: currentTitle || value, // Use currentTitle if set, otherwise use value
+            role: data.choices[0].message.role,
+            content: data.choices[0].message.content,
+          },
+        ]);
+      } catch (error) {
+        console.log(error);
+      }
     }
+  };
 
-    try {
-      const response = await fetch(`${backendUrl}/completions`, options);
-      const data = await response.json();
-      setMessage(data.choices[0].message);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  useEffect(()=>{
-    if(!currentTitle && value && message) {
+  useEffect(() => {
+    if (!currentTitle && value && message) {
       setCurrentTitle(value)
     }
-    if(currentTitle && value && message) {
+    if (currentTitle && value && message) {
       setPreviousChats(prevChats => (
         [...prevChats, {
           title: currentTitle,
@@ -68,18 +102,22 @@ const App = () => {
         }]
       ))
     }
-  },[message,currentTitle])
+  }, [message, currentTitle, value])
 
-const currentChat = previousChats.filter(previousChat => previousChat.title === currentTitle);
-const uniqueTitles = Array.from(new Set(previousChats.map(previousChat => previousChat.title)));
+  const currentChat = previousChats.filter(previousChat => previousChat.title === currentTitle);
+  // Memoize uniqueTitles using useMemo
+  const uniqueTitles = useMemo(() => {
+    const titles = Array.from(new Set(previousChats.map((chat) => chat.title))).filter(Boolean);
+    return titles;
+  }, [previousChats]);
 
   return (
     <div className="appContainer">
       <section className="sideBar">
-        <button className="chatBtn" onClick={createNewChat} style={{cursor:'pointer'}}>+ New chat</button>
+        <button className="chatBtn" onClick={handleNewChat} style={{ cursor: 'pointer' }}>+ New chat</button>
         <ul className="historyList">
-          {uniqueTitles?.map((uniqueTitle,index)=>(
-            <li key={index} className="historyItem" onClick={()=>handleClick(uniqueTitle)}>{uniqueTitle}</li>
+          {uniqueTitles?.map((uniqueTitle, index) => (
+            <li key={index} className="historyItem" onClick={() => handleTitleClick(uniqueTitle)}>{uniqueTitle}</li>
           ))}
         </ul>
         <nav className="footerContent">
@@ -91,20 +129,33 @@ const uniqueTitles = Array.from(new Set(previousChats.map(previousChat => previo
         <ul className="feedList">
           {currentChat?.map((chatMessage, index) => (
             <li key={index} className="feedItem">
-              <p className="role"><img src={chatMessage.role === "user" ? userIcon : botIcon} alt="role icon"/></p>
-              <p className="message">{chatMessage.content}</p>
+              <p className="role"><img src={chatMessage.role === "user" ? userIcon : botIcon} alt="role icon" /></p>
+              <p className="message">
+                {chatMessage.content.split('\n').map((paragraph, index) => (
+                  <React.Fragment key={index}>
+                    {paragraph}
+                    <br />
+                  </React.Fragment>
+                ))}
+              </p>
             </li>
           ))}
         </ul>
         <div className="bottomSection">
           <div className="inputContainer">
-          <textarea
-            rows="1"  // Initially show only one row
-            style={{ height: inputHeight }} // Set the dynamic height
-            value={value}
-            onChange={handleInputChange}
-          />
-            <div id="submit" onClick={getMessages}><img src={submitIcon} alt="submit icon" /></div>
+            <textarea
+              rows="1"
+              style={{ height: inputHeight }}
+              value={value}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault(); // Prevent the default behavior of Enter key (e.g., newline in textarea)
+                  handleButtonClick(); // Trigger the button click function
+                }
+              }}
+            />
+            <div id="submit" onClick={handleButtonClick}><img src={submitIcon} alt="submit icon" /></div>
           </div>
           <p className="info">
             Free Demo Research Preview.
